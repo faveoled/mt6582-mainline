@@ -10,9 +10,16 @@
 	pmic: mt6323 {
 		compatible = "mediatek,mt6323";
 		interrupt-parent = <&pio>;
-		interrupts = <150 IRQ_TYPE_LEVEL_HIGH>;
+		interrupts = <25 IRQ_TYPE_LEVEL_HIGH>;
 		interrupt-controller;
 		#interrupt-cells = <2>;
+		pinctrl-names = "default";
+        	pinctrl-0 = <&pmic_int_pins>;
+
+		mt6323_adc: adc {
+			compatible = "mediatek,mt6323-auxadc";
+			#io-channel-cells = <1>;
+		};
 
 		mt6323_leds: leds {
 			compatible = "mediatek,mt6323-led";
@@ -109,6 +116,7 @@
 				regulator-max-microvolt = <3300000>;
 				regulator-enable-ramp-delay = <216>;
 				regulator-boot-on;
+				regulator-always-on;
 			};
 
 			mt6323_vmc_reg: ldo_vmc {
@@ -133,6 +141,7 @@
 				regulator-max-microvolt = <3300000>;
 				regulator-enable-ramp-delay = <36>;
 				regulator-boot-on;
+				regulator-always-on;
 			};
 
 			mt6323_vgp1_reg: ldo_vgp1 {
@@ -147,6 +156,8 @@
 				regulator-min-microvolt = <1200000>;
 				regulator-max-microvolt = <3000000>;
 				regulator-enable-ramp-delay = <216>;
+				regulator-boot-on;
+				regulator-always-on;
 			};
 
 			mt6323_vgp3_reg: ldo_vgp3 {
@@ -219,7 +230,7 @@
 				regulator-name = "vio18";
 				regulator-min-microvolt = <1800000>;
 				regulator-max-microvolt = <1800000>;
-				regulator-enable-ramp-delay = <216>;
+				regulator-enable-ramp-delay = <316>;
 				regulator-always-on;
 				regulator-boot-on;
 			};
@@ -249,9 +260,6 @@
 				wakeup-source;
 			};
 
-			home {
-				linux,keycodes = <114>;
-			};
 		};
 
 		codec: mt6397codec {
@@ -265,5 +273,13 @@
 		rtc {
 			compatible = "mediatek,mt6323-rtc";
 		};
+	};
+
+	usb_gadget_vbus: usb-gadget-vbus {
+		compatible = "regulator-fixed";
+		regulator-name = "usb_gadget_vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		regulator-always-on;
 	};
 };

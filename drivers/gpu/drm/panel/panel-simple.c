@@ -5966,6 +5966,38 @@ static const struct panel_desc_dsi boe_bp101wx1_210_desc = {
 	.lanes = 4,
 };
 
+
+static const struct drm_display_mode tianma_otm1283a_mode = {
+	.clock = (720 + 70 + 8 + 80) * (1280 + 8 + 3 + 20) * 60 / 1000,
+	.hdisplay = 720,
+	.hsync_start = 720 + 70,
+	.hsync_end = 720 + 70 + 8,
+	.htotal = 720 + 70 + 8 + 80,
+	.vdisplay = 1280,
+	.vsync_start = 1280 + 8,
+	.vsync_end = 1280 + 8 + 3,
+	.vtotal = 1280 + 8 + 3 + 20,
+	.flags = DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC,
+};
+
+static const struct panel_desc_dsi tianma_otm1283a_desc = {
+	.desc = {
+		.modes = &tianma_otm1283a_mode,
+		.num_modes = 1,
+		.bpc = 8,
+		.size = {
+			.width = 62,
+			.height = 110,
+		},
+		.connector_type = DRM_MODE_CONNECTOR_DSI,
+	},
+	.flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_SYNC_PULSE,
+//	.bus_flags = DRM_BUS_FLAG_DE_HIGH | DRM_BUS_FLAG_PIXDATA_SAMPLE_NEGEDGE,
+	.format = MIPI_DSI_FMT_RGB888,
+	.lanes = 4,
+};
+
+
 static const struct of_device_id dsi_of_match[] = {
 	{
 		.compatible = "auo,b080uan01",
@@ -5988,6 +6020,9 @@ static const struct of_device_id dsi_of_match[] = {
 	}, { 
 		.compatible = "boe,bp101wx1-210", 
 		.data = &boe_bp101wx1_210_desc 
+	}, {
+		.compatible = "tianma,otm1283A_dsi_vdo_720p",
+		.data = &tianma_otm1283a_desc
 	}, {
 		/* sentinel */
 	}

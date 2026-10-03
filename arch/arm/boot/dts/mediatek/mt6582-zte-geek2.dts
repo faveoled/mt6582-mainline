@@ -502,6 +502,18 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&i2c1_pins>;
 	clock-frequency = <400000>;
+
+	charger@6a {
+		compatible = "ti,bq24158";
+		reg = <0x6a>;
+
+		ti,current-limit = <500>;
+		ti,weak-battery-voltage = <3400>;
+		ti,battery-regulation-voltage = <4255>;
+		ti,charge-current = <1000>;
+		ti,termination-current = <150>;
+		ti,resistor-sense = <56>;
+	};
 };
 
 &i2c2 {

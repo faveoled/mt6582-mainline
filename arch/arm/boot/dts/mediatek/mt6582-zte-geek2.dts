@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2026 Burst_Caster <swer15l23@gmail.com>
- * Copyright (C) 2026 faveoled <faveoled@yandex.com>
+ * Copyright (c) 2026 faveoled <faveoled@yandex.com>
  */
 
 /dts-v1/;
@@ -15,7 +15,7 @@
 	chosen {
 		#address-cells = <1>;
 		#size-cells = <1>;
-		
+
 		linux,initrd-start = <0x84000000>;
 		linux,initrd-end = <0x84900000>;
 
@@ -31,7 +31,7 @@
 
 	memory@80000000 {
 		device_type = "memory";
-		reg = <0x80000000 0x20000000>;
+		reg = <0x80000000 0x3d000fff>;
 	};
 
 	reserved-memory {
@@ -56,10 +56,9 @@
 	};
 };
 
-
 &usb {
 	status = "okay";
-	
+
 	dr_mode = "otg";
 	usb-role-switch-default-mode = "peripheral";
 	usb-role-switch;
@@ -101,7 +100,7 @@
 			#size-cells = <0>;
 			status = "disabled";
 		};
-		
+
 		mt6323regulator: mt6323regulator {
 			compatible = "mediatek,mt6323-regulator";
 
@@ -223,7 +222,7 @@
 				regulator-min-microvolt = <1200000>;
 				regulator-max-microvolt = <3300000>;
 				regulator-enable-ramp-delay = <216>;
-				regulator-always-on;		
+				regulator-always-on;
 			};
 
 			mt6323_vgp2_reg: ldo_vgp2 {
@@ -323,7 +322,7 @@
 				regulator-max-microvolt = <1800000>;
 				regulator-enable-ramp-delay = <216>;
 			};
-		}; 
+		};
 
 		mt6323keys: mt6323keys {
 			compatible = "mediatek,mt6323-keys";
@@ -394,15 +393,14 @@
 			input-enable;
 			bias-disable;
 		};
-        
     	};
 
 	pmic_int_pins: pmic-int {
 		pins {
 			pinmux = <MT6582_PIN_25_PWRAP_INT__FUNC_GPIO25>;
 			input-enable;
-			bias-pull-down; 
-			debounce-interval = <1000>; 
+			bias-pull-down;
+			debounce-interval = <1000>;
 		};
     	};
 
@@ -523,4 +521,26 @@
 	clock-frequency = <100000>;
 };
 
+&mmsys {
+	status = "disabled";
+};
 
+&ovl0 {
+	status = "disabled";
+};
+
+&rdma0 {
+	status = "disabled";
+};
+
+&color {
+	status = "disabled";
+};
+
+&bls {
+	status = "disabled";
+};
+
+&dsi {
+	status = "disabled";
+};

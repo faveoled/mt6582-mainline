@@ -179,6 +179,45 @@
 		interrupt-affinity = <&cpu0>, <&cpu1>, <&cpu2>, <&cpu3>;
 	};
 
+	thermal-zones {
+		cpu_thermal: cpu-thermal {
+			polling-delay-passive = <1000>;
+			polling-delay = <1000>;
+			thermal-sensors = <&thermal 0>;
+
+			trips {
+				cpu_passive: cpu-passive {
+					temperature = <65000>;
+					hysteresis = <2000>;
+					type = "passive";
+				};
+
+				cpu_hot: cpu-hot {
+					temperature = <80000>;
+					hysteresis = <2000>;
+					type = "hot";
+				};
+
+				cpu-crit {
+					temperature = <120000>;
+					hysteresis = <2000>;
+					type = "critical";
+				};
+			};
+
+			cooling-maps {
+				map0 {
+					trip = <&cpu_passive>;
+					cooling-device = <&cpu0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
+							 <&cpu1 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
+							 <&cpu2 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>,
+							 <&cpu3 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+				};
+			};
+		};
+	};
+
+
 	system_clk: dummy13m {
 		compatible = "fixed-clock";
 		#clock-cells = <0>;
@@ -509,8 +548,7 @@
 
 		thermal: thermal@1100b000 {
 			#thermal-sensor-cells = <0>;
-			compatible = "mediatek,mt6582-thermal",
-					"mediatek,mt2701-thermal";
+			compatible = "mediatek,mt6582-thermal";
 			reg = <0x1100b000 0x1000>;
 			interrupts = <GIC_SPI 31 IRQ_TYPE_LEVEL_LOW>;
 			clocks = <&pericfg CLK_PERI_THERM>,
@@ -536,6 +574,7 @@
 				 <&pericfg CLK_PERI_USB0>,
 				 <&apmixedsys CLK_APMIXED_UNIV48M>;
 			clock-names = "main", "mcu", "univpll";
+			// resets = <&pericfg PERI_USB0_SW_RST>;
 			
 			status = "disabled";
 		};

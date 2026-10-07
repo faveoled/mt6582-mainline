@@ -473,10 +473,6 @@
 
 };
 
-&gce {
-	status = "okay";
-};
-
 &i2c0 {
 	status = "okay";
 	pinctrl-names = "default";
@@ -521,6 +517,10 @@
 	clock-frequency = <100000>;
 };
 
+&gce {
+	status = "okay";
+};
+
 &mmsys {
 	status = "disabled";
 };
@@ -534,10 +534,6 @@
 };
 
 &color {
-	status = "disabled";
-};
-
-&bls {
 	status = "disabled";
 };
 

@@ -1,0 +1,489 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (c) 2026 Burst_Caster <swer15l23@gmail.com>
+ * Copyright (c) 2026 faveoled <faveoled@yandex.com>
+ */
+
+/dts-v1/;
+
+#include "mt6582.dtsi"
+#include "mt6323.dtsi"
+#include <dt-bindings/pinctrl/mt6582-pinfunc.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/power/mediatek,mt6582-power.h>
+#include <dt-bindings/iio/adc/mediatek,mt6323-auxadc.h>
+
+/ {
+	model = "ZTE Geek 2";
+	compatible = "zte,geek2", "mediatek,mt6582";
+
+	chosen {
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		linux,initrd-start = <0x84000000>;
+		linux,initrd-end = <0x84900000>;
+
+		framebuffer@bee00000 {
+			compatible = "simple-framebuffer";
+			memory-region = <&framebuffer_reserved>;
+			width = <720>;
+			height = <1280>;
+			stride = <(720 * 2)>;
+			format = "r5g6b5";
+		};
+	};
+
+	memory@80000000 {
+		device_type = "memory";
+		reg = <0x80000000 0x3d000fff>;
+	};
+
+	reserved-memory {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		ranges;
+
+		connsys@9f900000 {
+			reg = <0x9f900000 0x100000>;
+			no-map;
+		};
+
+		modem@9e000000 {
+			reg = <0x9e000000 0x1800000>;
+			no-map;
+		};
+
+		framebuffer_reserved: framebuffer@bee00000 {
+			reg = <0xbee00000 (720 * 1280 * 2)>;
+			no-map;
+		};
+	};
+
+	regulator_p11: regulator-p11 {
+		compatible = "regulator-fixed";
+		regulator-name = "regulator_p11";
+		gpios = <&pio 11 GPIO_ACTIVE_HIGH>;
+	};
+
+	regulator_p119: regulator-p119 {
+		compatible = "regulator-fixed";
+		regulator-name = "regulator_p119";
+		gpios = <&pio 119 GPIO_ACTIVE_LOW>;
+	};
+
+	shunt_resistor: current-sense-shunt {
+		compatible = "current-sense-shunt";
+		io-channels = <&mt6323_adc MT6323_AUXADC_ISENSE>; /* channel 6 */
+		shunt-resistor-micro-ohms = <56000>;
+		#io-channel-cells = <0>;
+	};
+
+	ntc_battery: ntc-battery {
+		compatible = "murata,ncp15wb473";
+		io-channels = <&mt6323_adc MT6323_AUXADC_BATON1>; /* channel 5 */
+
+		pullup-uv = <1800000>;
+		pullup-ohm = <61900>;
+		pulldown-ohm = <100000>;
+
+		#thermal-sensor-cells = <0>;
+	};
+
+	fuel_gauge: fuel-gauge {
+		compatible = "adc-battery";
+
+		io-channels = <&mt6323_adc MT6323_AUXADC_BATSNS>, /* channel 7 */
+			      <&shunt_resistor>;
+
+		io-channel-names = "voltage", "current"; // , "temperature";
+		power-supplies = <&charger>;
+		monitored-battery = <&battery>;
+	};
+
+	thermal-zones {
+		battery_thermal: battery-thermal {
+		    polling-delay = <2000>;
+
+		    thermal-sensors = <&ntc_battery>;
+
+		    trips {
+		        battery_alert: battery-alert {
+		            temperature = <45000>;
+		            hysteresis = <2000>;
+		            type = "passive";
+		        };
+
+		        battery_crit: battery-crit {
+		            temperature = <55000>;
+		            hysteresis = <2000>;
+		            type = "critical";
+		        };
+		    };
+		};
+    	};
+
+
+	battery: battery {
+		compatible = "simple-battery";
+		charge-full-design-microamp-hours = <2323000>;
+		voltage-min-design-microvolt = <3400000>;
+		voltage-max-design-microvolt = <4255000>;
+		operating-range-celsius = <(-10) 50>;
+		factory-internal-resistance-micro-ohms = <177000>;
+
+		alert-celsius = <0 45>;
+		precharge-upper-limit-microvolt = <3400000>;
+		precharge-current-microamp = <425000>;
+		re-charge-voltage-microvolt = <150000>;
+
+		ocv-capacity-celsius = <(-10) 0 25 50>;
+
+		ocv-capacity-table-0 = <4228000 95>, <4209000 94>, <4191000 92>, <4173000 91>,
+				       <4157000 89>, <4141000 87>, <4125000 86>, <4109000 84>,
+				       <4094000 83>, <4079000 81>, <4066000 80>, <4051000 78>,
+				       <4032000 76>, <4013000 75>, <3995000 73>, <3979000 72>,
+				       <3966000 70>, <3954000 69>, <3942000 67>, <3930000 65>,
+				       <3918000 64>, <3906000 62>, <3894000 61>, <3883000 59>,
+				       <3873000 58>, <3863000 56>, <3854000 54>, <3846000 53>,
+				       <3838000 51>, <3830000 50>, <3823000 48>, <3817000 47>,
+				       <3811000 45>, <3805000 44>, <3799000 42>, <3794000 40>,
+				       <3790000 39>, <3786000 37>, <3782000 36>, <3779000 34>,
+				       <3776000 33>, <3774000 31>, <3772000 29>, <3770000 28>,
+				       <3767000 26>, <3765000 25>, <3761000 23>, <3758000 22>,
+				       <3754000 20>, <3749000 18>, <3743000 17>, <3738000 15>,
+				       <3731000 14>, <3723000 12>, <3714000 11>, <3704000 9>,
+				       <3695000 7>, <3689000 6>, <3682000 4>, <3675000 3>,
+				       <3666000 1>, <3648000 0>, <3613000 0>, <3400000 0>;
+
+		ocv-capacity-table-1 = <4237000 95>, <4219000 94>, <4201000 92>, <4184000 91>,
+				       <4168000 89>, <4152000 88>, <4136000 86>, <4121000 85>,
+				       <4106000 83>, <4091000 82>, <4077000 80>, <4064000 79>,
+				       <4049000 77>, <4033000 76>, <4016000 74>, <4001000 73>,
+				       <3988000 71>, <3976000 70>, <3964000 68>, <3951000 67>,
+				       <3938000 65>, <3924000 64>, <3912000 62>, <3899000 60>,
+				       <3887000 59>, <3876000 57>, <3865000 56>, <3855000 54>,
+				       <3847000 53>, <3839000 51>, <3832000 50>, <3825000 48>,
+				       <3818000 47>, <3813000 45>, <3807000 44>, <3802000 42>,
+				       <3797000 41>, <3793000 39>, <3789000 38>, <3785000 36>,
+				       <3781000 35>, <3778000 33>, <3776000 32>, <3774000 30>,
+				       <3772000 29>, <3770000 27>, <3767000 25>, <3765000 24>,
+				       <3761000 22>, <3757000 21>, <3753000 19>, <3748000 18>,
+				       <3741000 16>, <3734000 15>, <3726000 13>, <3718000 12>,
+				       <3708000 10>, <3696000 9>, <3688000 7>, <3682000 6>,
+				       <3676000 4>, <3668000 3>, <3653000 1>, <3612000 0>,
+				       <3540000 0>, <3400000 0>;
+
+		ocv-capacity-table-2 = <4237000 93>, <4220000 91>, <4204000 90>, <4187000 89>,
+				       <4171000 87>, <4156000 86>, <4140000 84>, <4124000 83>,
+				       <4109000 81>, <4094000 80>, <4080000 78>, <4065000 77>,
+				       <4051000 76>, <4038000 74>, <4024000 73>, <4011000 71>,
+				       <3999000 70>, <3986000 68>, <3974000 67>, <3962000 66>,
+				       <3950000 64>, <3938000 63>, <3925000 61>, <3910000 60>,
+				       <3897000 58>, <3883000 57>, <3871000 56>, <3861000 54>,
+				       <3851000 53>, <3843000 51>, <3836000 50>, <3829000 48>,
+				       <3823000 47>, <3817000 46>, <3811000 44>, <3806000 43>,
+				       <3801000 41>, <3797000 40>, <3792000 38>, <3789000 37>,
+				       <3785000 35>, <3782000 34>, <3779000 33>, <3775000 31>,
+				       <3772000 30>, <3767000 28>, <3762000 27>, <3757000 25>,
+				       <3752000 24>, <3746000 23>, <3742000 21>, <3737000 20>,
+				       <3731000 18>, <3723000 17>, <3715000 15>, <3708000 14>,
+				       <3698000 13>, <3687000 11>, <3684000 10>, <3681000 8>,
+				       <3676000 7>, <3666000 5>, <3639000 4>, <3580000 3>,
+				       <3497000 1>, <3371000 0>;
+
+		ocv-capacity-table-3 = <4226000 91>, <4209000 90>, <4193000 89>, <4176000 87>,
+				       <4160000 86>, <4144000 84>, <4129000 83>, <4113000 81>,
+				       <4098000 80>, <4084000 79>, <4069000 77>, <4054000 76>,
+				       <4040000 74>, <4027000 73>, <4014000 71>, <4001000 70>,
+				       <3989000 69>, <3977000 67>, <3965000 66>, <3953000 64>,
+				       <3942000 63>, <3930000 61>, <3917000 60>, <3903000 59>,
+				       <3888000 57>, <3874000 56>, <3863000 54>, <3853000 53>,
+				       <3844000 51>, <3836000 50>, <3829000 49>, <3822000 47>,
+				       <3815000 46>, <3810000 44>, <3804000 43>, <3799000 42>,
+				       <3794000 40>, <3790000 39>, <3785000 37>, <3781000 36>,
+				       <3778000 34>, <3774000 33>, <3771000 32>, <3766000 30>,
+				       <3757000 29>, <3747000 27>, <3741000 26>, <3736000 24>,
+				       <3730000 23>, <3725000 22>, <3720000 20>, <3716000 19>,
+				       <3709000 17>, <3701000 16>, <3693000 14>, <3685000 13>,
+				       <3672000 12>, <3668000 10>, <3665000 9>, <3661000 7>,
+				       <3655000 6>, <3639000 4>, <3590000 3>, <3519000 2>,
+				       <3415000 0>, <3238000 0>;
+
+		over-voltage-threshold-microvolt = <4300000>;
+		constant-charge-current-max-microamp = <1000000>;
+		constant-charge-voltage-max-microvolt = <4255000>;
+
+		trickle-charge-current-microamp = <30000>;
+		charge-term-current-microamp = <150000>;
+
+		energy-full-design-microwatt-hours = <8595100>;
+	};
+};
+
+&cpu_thermal {
+    status = "disabled";
+};
+
+
+&usb {
+	status = "okay";
+
+	dr_mode = "otg";
+	usb-role-switch-default-mode = "peripheral";
+	usb-role-switch;
+	connector {
+			compatible = "gpio-usb-b-connector", "usb-b-connector";
+			type = "micro";
+			id-gpios = <&pio 17 GPIO_ACTIVE_HIGH>;
+
+	};
+};
+
+&u2phy0 {
+	status = "okay";
+
+};
+
+&u2port0 {
+	status = "okay";
+};
+
+
+&pwrap {
+	pmic: mt6323 {
+		compatible = "mediatek,mt6323";
+		interrupt-parent = <&pio>;
+		interrupts = <25 IRQ_TYPE_LEVEL_HIGH>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+		pinctrl-names = "default";
+        	pinctrl-0 = <&pmic_int_pins>;
+
+		mt6323_leds: leds {
+			status = "disabled";
+		};	
+		
+		mt6323regulator: mt6323regulator {
+			mt6323_vusb_reg: ldo_vusb {
+				regulator-always-on;
+			};
+			
+			mt6323_vemc3v3_reg: ldo_vemc3v3 {
+				regulator-always-on;			
+			};
+			
+			mt6323_vgp1_reg: ldo_vgp1 {
+				regulator-always-on;
+			};
+			
+			mt6323_vgp2_reg: ldo_vgp2 {
+				regulator-boot-on;
+				regulator-always-on;
+			};
+			
+			mt6323_vio18_reg: ldo_vio18 {
+				regulator-enable-ramp-delay = <316>;
+			};								
+		};
+	};
+};
+
+&mmc1 {
+	pinctrl-names = "default", "state_uhs";
+	pinctrl-0 = <&msdc1_pins_default>;
+	pinctrl-1 = <&msdc1_pins_uhs>;
+	status = "okay";
+	bus-width = <4>;
+	max-frequency = <100000000>;
+	cap-sd-highspeed;
+	cd-gpios = <&pio 14 GPIO_ACTIVE_HIGH>;
+	vmmc-supply = <&mt6323_vmch_reg>;
+	vqmmc-supply = <&mt6323_vmc_reg>;
+	sd-uhs-sdr12;
+	sd-uhs-sdr25;
+	sd-uhs-sdr50;
+	sd-uhs-sdr104;
+	sd-uhs-ddr50;
+	cap-sd-highspeed;
+	no-mmc;
+	no-sdio;
+	no-write-protect;
+	mediatek,latch-ck = <0>;
+
+};
+
+&pio {
+	status = "okay";
+	pwrap_pins_default: pwrap-default {
+		pins_ {
+			pinmux = <MT6582_PIN_21_PWRAP_SPI0_MI__FUNC_PWRAP_SPIDO>,
+			<MT6582_PIN_22_PWRAP_SPI0_MO__FUNC_PWRAP_SPIDI>,
+			<MT6582_PIN_23_PWRAP_SPI0_CK__FUNC_PWRAP_SPICK_I>,
+			<MT6582_PIN_24_PWRAP_SPI0_CSN__FUNC_PWRAP_SPICS_B_I>;
+			input-enable;
+			bias-disable;
+		};
+
+    	};
+
+	pmic_int_pins: pmic-int {
+		pins {
+			pinmux = <MT6582_PIN_25_PWRAP_INT__FUNC_GPIO25>;
+			input-enable;
+			bias-pull-down;
+			debounce-interval = <1000>;
+		};
+    	};
+
+	msdc1_pins_default: msdc1-default {
+		pins-cmd-dat{
+		 	pinmux = <MT6582_PIN_124_MSDC1_CMD__FUNC_MSDC1_CMD>,
+		 	 	 <MT6582_PIN_126_MSDC1_DAT0__FUNC_MSDC1_DAT0>,
+			 	 <MT6582_PIN_127_MSDC1_DAT1__FUNC_MSDC1_DAT1>,
+		 	 	 <MT6582_PIN_128_MSDC1_DAT2__FUNC_MSDC1_DAT2>,
+		 	 	 <MT6582_PIN_129_MSDC1_DAT3__FUNC_MSDC1_DAT3>;
+		 	input-enable;
+		 	bias-pull-up;
+
+		};
+		pins-clk {
+		 	pinmux = <MT6582_PIN_125_MSDC1_CLK__FUNC_MSDC1_CLK>;
+			bias-pull-down;
+		 	drive-strength = <4>;
+		};
+		sd-detect {
+			pinmux = <MT6582_PIN_14_EINT14__FUNC_GPIO14>;
+			input-enable;
+			bias-pull-up;
+		};
+	};
+
+	msdc1_pins_uhs: msdc1 {
+		pins-cmd-dat{
+		 	pinmux = <MT6582_PIN_124_MSDC1_CMD__FUNC_MSDC1_CMD>,
+		 	 	 <MT6582_PIN_126_MSDC1_DAT0__FUNC_MSDC1_DAT0>,
+		 	 	 <MT6582_PIN_127_MSDC1_DAT1__FUNC_MSDC1_DAT1>,
+		 	 	 <MT6582_PIN_128_MSDC1_DAT2__FUNC_MSDC1_DAT2>,
+		 		 <MT6582_PIN_129_MSDC1_DAT3__FUNC_MSDC1_DAT3>;
+		 	input-enable;
+		 	bias-pull-up;
+		 	drive-strength = <8>;
+		};
+		pins-clk {
+		 	pinmux = <MT6582_PIN_125_MSDC1_CLK__FUNC_MSDC1_CLK>;
+		 	bias-pull-down;
+		 	drive-strength = <12>;
+		};
+		sd-detect {
+			pinmux = <MT6582_PIN_14_EINT14__FUNC_GPIO14>;
+			input-enable;
+			bias-pull-up;
+		};
+	};
+
+	touch_pins_default: touch-pins {
+		pins-irq {
+			pinmux = <MT6582_PIN_10_EINT10__FUNC_GPIO10>;
+			input-enable;
+			bias-pull-up;
+        	};
+		pins-reset {
+			pinmux = <MT6582_PIN_13_GPIO13__FUNC_GPIO13>;
+			output-high;
+		};
+    	};
+
+	usb0_id_pin: usb0 {
+		pins-usb-id{
+			pinmux = <MT6582_PIN_17_EINT17__FUNC_GPIO17>;
+			bias-pull-up;
+			input-enable;
+			debounce-interval = <1000>;
+		};
+	};
+
+};
+
+&i2c0 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c0_pins>;
+	clock-frequency = <400000>;
+
+	touchscreen@22 {
+		compatible = "syna,rmi4-i2c";
+		reg = <0x22>;
+
+		vdd-supply = <&mt6323_vgp1_reg>;
+		vio-supply = <&mt6323_vio18_reg>;
+
+		interrupt-parent = <&pio>;
+		interrupts = <115 IRQ_TYPE_EDGE_FALLING>;
+	};
+};
+
+&i2c1 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c1_pins>;
+	clock-frequency = <400000>;
+
+	charger: charger@6a {
+		compatible = "ti,bq24158";
+		reg = <0x6a>;
+
+		ti,current-limit = <500>;
+		ti,weak-battery-voltage = <3400>;
+		ti,battery-regulation-voltage = <4255>;
+		ti,charge-current = <1000>;
+		ti,termination-current = <150>;
+		ti,resistor-sense = <56>;
+	};
+};
+
+&i2c2 {
+	status = "okay";
+	pinctrl-names = "default";
+	pinctrl-0 = <&i2c2_pins>;
+	clock-frequency = <100000>;
+};
+
+&gce {
+	status = "okay";
+};
+
+
+&mali {
+	status = "disabled";
+};
+
+&mmsys {
+	status = "disabled";
+};
+
+&ovl0 {
+	status = "disabled";
+};
+
+&rdma0 {
+	status = "disabled";
+};
+
+&color {
+	status = "disabled";
+};
+
+&bls {
+	status = "disabled";
+};
+
+&dsi {
+	status = "disabled";
+};
+
+&bls {
+	status = "disabled";
+};
+
+
